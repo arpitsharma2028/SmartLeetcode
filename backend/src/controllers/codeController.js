@@ -1,4 +1,63 @@
 const supabase = require('../config/supabaseClient');
+const { execSync } = require('child_process');
+const fsModule = require('fs');
+const path = require('path');
+const os = require('os');
+
+function executeCodeLocally(language, sourceCode, stdin) {
+    const tmpDir = os.tmpdir();
+    const fileName = 'main_' + Date.now() + Math.floor(Math.random()*1000);
+    let result = { run: { code: 0, stdout: '', output: '' }, compile: { code: 0, output: '' } };
+
+    try {
+        if (language === 'javascript') {
+            const filePath = path.join(tmpDir, fileName + '.js');
+            fsModule.writeFileSync(filePath, sourceCode);
+            try {
+                result.run.stdout = execSync('node ' + filePath, { input: stdin, timeout: 3000, encoding: 'utf-8', stdio: 'pipe' });
+            } catch (err) {
+                result.run.code = err.status || 1;
+                result.run.output = err.stderr || err.message;
+            }
+            if(fsModule.existsSync(filePath)) fsModule.unlinkSync(filePath);
+        } else if (language === 'python') {
+            const filePath = path.join(tmpDir, fileName + '.py');
+            fsModule.writeFileSync(filePath, sourceCode);
+            try {
+                result.run.stdout = execSync('python ' + filePath, { input: stdin, timeout: 3000, encoding: 'utf-8', stdio: 'pipe' });
+            } catch (err) {
+                result.run.code = err.status || 1;
+                result.run.output = err.stderr || err.message;
+            }
+            if(fsModule.existsSync(filePath)) fsModule.unlinkSync(filePath);
+        } else if (language === 'cpp') {
+            const filePath = path.join(tmpDir, fileName + '.cpp');
+            const exePath = path.join(tmpDir, fileName + '.exe');
+            fsModule.writeFileSync(filePath, sourceCode);
+            try {
+                execSync('g++ ' + filePath + ' -o ' + exePath, { timeout: 10000, encoding: 'utf-8', stdio: 'pipe' });
+                try {
+                    result.run.stdout = execSync(exePath, { input: stdin, timeout: 3000, encoding: 'utf-8', stdio: 'pipe' });
+                } catch (runErr) {
+                    result.run.code = runErr.status || 1;
+                    result.run.output = runErr.stderr || runErr.message;
+                }
+                if (fsModule.existsSync(exePath)) fsModule.unlinkSync(exePath);
+            } catch (compileErr) {
+                result.compile.code = compileErr.status || 1;
+                result.compile.output = compileErr.stderr || compileErr.message;
+            }
+            if(fsModule.existsSync(filePath)) fsModule.unlinkSync(filePath);
+        } else {
+            result.run.code = 1;
+            result.run.output = 'Language not supported locally';
+        }
+    } catch (e) {
+        result.run.code = 1;
+        result.run.output = 'Local execution wrapper failed: ' + e.message;
+    }
+    return result;
+}
 
 const PISTON_LANGUAGE_MAP = {
   'javascript': { language: 'javascript', version: '18.15.0' },
@@ -54,21 +113,7 @@ exports.submitCode = async (req, res) => {
 
     // 3. Execute Code via Piston
     for (const testCase of testCases) {
-      const payload = {
-        language: langConfig.language,
-        version: langConfig.version,
-        files: [{ name: `main.${language === 'python' ? 'py' : language === 'javascript' ? 'js' : 'cpp'}`, content: sourceCode }],
-        stdin: testCase.input,
-        compile_timeout: 10000,
-        run_timeout: 3000,
-      };
-
-      const pistonResponse = await fetch('https://emkc.org/api/v2/piston/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const result = await pistonResponse.json();
+      const result = executeCodeLocally(language, sourceCode, testCase.input);
 
       if (result.compile && result.compile.code !== 0) {
         compilationError = result.compile.output;
