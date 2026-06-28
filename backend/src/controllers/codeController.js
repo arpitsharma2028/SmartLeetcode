@@ -76,7 +76,7 @@ const HINT_PENALTY = 5;
 
 exports.submitCode = async (req, res) => {
   try {
-    const { userId, questionId, sourceCode, language } = req.body;
+    const { userId, questionId, sourceCode, language, isRun, customInput } = req.body;
 
     if (!userId || !questionId || !sourceCode || !language) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -103,10 +103,21 @@ exports.submitCode = async (req, res) => {
 
     const hintsUsed = session ? session.hints_used : 0;
 
-    const testCases = question.test_cases; 
+    let testCases = [];
+    if (isRun && customInput !== undefined && customInput.trim() !== '') {
+        testCases = [{ input: customInput, expected_output: 'Custom Output Not Validated' }];
+    } else {
+        testCases = question.test_cases; 
+        if (isRun) {
+            testCases = testCases.slice(0, 2); // Only run against first 2 test cases
+        }
+    }
+    
     let allPassed = true;
-    let failedTestCase = null;
     let compilationError = null;
+    let passedCount = 0;
+    const totalCount = testCases.length;
+    let testResults = [];
 
     const langConfig = PISTON_LANGUAGE_MAP[language];
     if (!langConfig) return res.status(400).json({ error: 'Unsupported language' });
@@ -124,16 +135,25 @@ exports.submitCode = async (req, res) => {
       if (result.run && result.run.code !== 0) {
         compilationError = result.run.output; 
         allPassed = false;
-        break;
+        break; // Runtime errors abort execution
       }
 
       const actualOutput = (result.run.stdout || '').trim();
       const expectedOutput = (testCase.expected_output || '').trim();
+      const isPassed = (isRun && customInput !== undefined && customInput.trim() !== '') ? true : (actualOutput === expectedOutput);
 
-      if (actualOutput !== expectedOutput) {
+      testResults.push({
+        input: testCase.input,
+        expected: expectedOutput,
+        actual: actualOutput,
+        passed: isPassed
+      });
+
+      if (!isPassed) {
         allPassed = false;
-        failedTestCase = { input: testCase.input, expected: expectedOutput, actual: actualOutput };
-        break;
+        if (!isRun) break; // Break early on Submit to save compute
+      } else {
+        passedCount++;
       }
     }
 
@@ -141,7 +161,11 @@ exports.submitCode = async (req, res) => {
     if (compilationError) status = 'Compilation Error';
     else if (!allPassed) status = 'Wrong Answer';
 
-    // 4. Database Logging (Heatmap & History)
+    let pointsEarned = 0;
+
+    // Only log and score if this is an official submit
+    if (!isRun) {
+      // 4. Database Logging (Heatmap & History)
     const { error: submissionError } = await supabase.from('submissions').insert({
       user_id: userId,
       question_id: questionId,
@@ -226,14 +250,18 @@ exports.submitCode = async (req, res) => {
         }
       }
     }
+    } // End of !isRun check
 
     res.status(200).json({
       status,
       message: status === 'Accepted' ? 'All test cases passed!' : 'Code execution failed',
       pointsEarned,
+      passedCount,
+      totalCount,
       details: {
         compilationError,
-        failedTestCase
+        testResults,
+        failedTestCase: testResults.find(tr => !tr.passed)
       }
     });
 

@@ -24,7 +24,10 @@ const Problem = () => {
   const [isFetchingHint, setIsFetchingHint] = useState(false);
   
   const [executionResult, setExecutionResult] = useState(null);
-
+  const [activeTab, setActiveTab] = useState('testcases');
+  const [customInput, setCustomInput] = useState('');
+  const [useCustomInput, setUseCustomInput] = useState(false);
+  const [activeResultCase, setActiveResultCase] = useState(0);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -65,7 +68,7 @@ const Problem = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (isRun = false) => {
     if (!question || !sourceCode.trim()) return;
     
     setIsSubmitting(true);
@@ -76,9 +79,15 @@ const Problem = () => {
         userId: user.id,
         questionId: question.id,
         sourceCode: sourceCode,
-        language: language
+        language: language,
+        isRun: isRun,
+        customInput: (isRun && useCustomInput) ? customInput : undefined
       });
       setExecutionResult(response.data);
+      if (isRun) {
+        setActiveTab('results');
+        setActiveResultCase(0);
+      }
     } catch (error) {
       console.error('Submission failed:', error);
       setExecutionResult({
@@ -116,6 +125,27 @@ const Problem = () => {
           
           <div className="prose prose-invert max-w-none text-gray-300 mb-8" 
                dangerouslySetInnerHTML={{ __html: question.description.replace(/\n/g, '<br/>') }} />
+
+          {/* Sample Test Cases */}
+          {question.test_cases && question.test_cases.length > 0 && (
+            <div className="mb-8 border-t border-gray-700 pt-6">
+              <h3 className="text-xl font-bold text-white mb-4">Sample Test Cases</h3>
+              <div className="space-y-4">
+                {question.test_cases.slice(0, 2).map((tc, idx) => (
+                  <div key={idx} className="bg-gray-900 rounded-lg p-4 border border-gray-700 shadow-inner">
+                    <div className="mb-3">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Input</span>
+                      <pre className="text-gray-300 font-mono text-sm mt-1 whitespace-pre-wrap">{tc.input}</pre>
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Expected Output</span>
+                      <pre className="text-green-400 font-mono text-sm mt-1 whitespace-pre-wrap">{tc.expected_output}</pre>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* AI Hints Section */}
           <div className="mt-8 border-t border-gray-700 pt-6">
@@ -161,13 +191,22 @@ const Problem = () => {
             <option value="java">Java</option>
           </select>
           
-          <button 
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="px-6 py-1.5 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-bold rounded transition-colors shadow-lg shadow-green-500/30"
-          >
-            {isSubmitting ? 'Running...' : 'Submit'}
-          </button>
+          <div className="space-x-3">
+            <button 
+              onClick={() => handleSubmit(true)}
+              disabled={isSubmitting}
+              className="px-5 py-1.5 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white font-bold rounded transition-colors border border-gray-600"
+            >
+              Run
+            </button>
+            <button 
+              onClick={() => handleSubmit(false)}
+              disabled={isSubmitting}
+              className="px-6 py-1.5 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-bold rounded transition-colors shadow-lg shadow-green-500/30"
+            >
+              {isSubmitting ? 'Running...' : 'Submit'}
+            </button>
+          </div>
         </div>
 
         {/* Monaco Editor */}
@@ -189,56 +228,144 @@ const Problem = () => {
 
         {/* Execution Console */}
         <div className="h-64 bg-gray-900 border-t border-gray-700 flex flex-col">
-          <div className="px-4 py-2 bg-gray-800 border-b border-gray-700">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Console Output</span>
+          <div className="flex bg-gray-800 border-b border-gray-700">
+            <button 
+              className={`px-4 py-2 text-sm font-bold ${activeTab === 'testcases' ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-gray-200'}`}
+              onClick={() => setActiveTab('testcases')}
+            >
+              Testcases
+            </button>
+            <button 
+              className={`px-4 py-2 text-sm font-bold ${activeTab === 'results' ? 'text-white border-b-2 border-blue-500' : 'text-gray-400 hover:text-gray-200'}`}
+              onClick={() => setActiveTab('results')}
+            >
+              Test Result
+            </button>
           </div>
+          
           <div className="p-4 flex-1 overflow-y-auto font-mono text-sm">
-            {!executionResult && !isSubmitting && (
-              <span className="text-gray-500">Run your code to see the output here.</span>
-            )}
-            
-            {isSubmitting && (
-              <span className="text-blue-400 animate-pulse">Compiling and running tests on engine...</span>
-            )}
-
-            {executionResult && (
-              <div className="space-y-2">
-                <div className="flex items-center space-x-3">
-                  <span className={`text-lg font-bold ${
-                    executionResult.status === 'Accepted' ? 'text-green-500' : 
-                    executionResult.status === 'Wrong Answer' ? 'text-red-500' : 'text-yellow-500'
-                  }`}>
-                    {executionResult.status}
-                  </span>
-                  {executionResult.pointsEarned > 0 && (
-                    <span className="px-2 py-0.5 bg-green-900/50 text-green-300 rounded text-xs border border-green-800">
-                      +{executionResult.pointsEarned} Points
-                    </span>
-                  )}
+            {activeTab === 'testcases' && (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <input 
+                    type="checkbox" 
+                    id="useCustom" 
+                    checked={useCustomInput}
+                    onChange={(e) => setUseCustomInput(e.target.checked)}
+                    className="rounded border-gray-600 bg-gray-700 text-blue-500 focus:ring-blue-500"
+                  />
+                  <label htmlFor="useCustom" className="text-sm font-bold text-gray-300 cursor-pointer">Use Custom Testcase</label>
                 </div>
                 
-                <p className="text-gray-300">{executionResult.message}</p>
+                {useCustomInput ? (
+                  <textarea
+                    value={customInput}
+                    onChange={(e) => setCustomInput(e.target.value)}
+                    placeholder="Enter your custom testcase input here..."
+                    className="w-full h-32 bg-gray-800 text-gray-300 border border-gray-700 rounded p-3 focus:outline-none focus:border-blue-500 font-mono text-sm"
+                  />
+                ) : (
+                  question?.test_cases?.slice(0, 2).map((tc, idx) => (
+                    <div key={idx} className="bg-gray-800 rounded p-3 border border-gray-700">
+                      <span className="text-gray-500 block text-xs font-bold uppercase mb-1">Case {idx + 1} Input:</span>
+                      <pre className="text-gray-300 whitespace-pre-wrap">{tc.input}</pre>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
 
-                {executionResult.details?.compilationError && (
-                  <div className="mt-2 p-3 bg-red-950/50 border border-red-900 rounded text-red-400 overflow-x-auto whitespace-pre-wrap">
-                    {executionResult.details.compilationError}
-                  </div>
+            {activeTab === 'results' && (
+              <div>
+                {!executionResult && !isSubmitting && (
+                  <span className="text-gray-500">Run your code to see the output here.</span>
+                )}
+                
+                {isSubmitting && (
+                  <span className="text-blue-400 animate-pulse">Compiling and running tests...</span>
                 )}
 
-                {executionResult.details?.failedTestCase && (
-                  <div className="mt-4 space-y-2">
-                    <div className="p-2 bg-gray-800 rounded">
-                      <span className="text-gray-500 block text-xs mb-1">Input:</span>
-                      <code className="text-gray-300">{executionResult.details.failedTestCase.input}</code>
+                {executionResult && (
+                  <div className="space-y-4">
+                    <div className="flex items-center flex-wrap gap-3">
+                      <span className={`text-lg font-bold ${
+                        executionResult.status === 'Accepted' ? 'text-green-500' : 
+                        executionResult.status === 'Wrong Answer' ? 'text-red-500' : 'text-yellow-500'
+                      }`}>
+                        {executionResult.status}
+                      </span>
+                      
+                      {executionResult.totalCount !== undefined && (
+                        <span className="px-2 py-0.5 bg-gray-800 text-gray-300 rounded text-xs border border-gray-700 font-medium">
+                          {executionResult.passedCount} / {executionResult.totalCount} Test Cases Passed
+                        </span>
+                      )}
+
+                      {executionResult.pointsEarned > 0 && (
+                        <span className="px-2 py-0.5 bg-green-900/50 text-green-300 rounded text-xs border border-green-800">
+                          +{executionResult.pointsEarned} Points
+                        </span>
+                      )}
                     </div>
-                    <div className="p-2 bg-gray-800 rounded">
-                      <span className="text-gray-500 block text-xs mb-1">Expected Output:</span>
-                      <code className="text-green-400">{executionResult.details.failedTestCase.expected}</code>
-                    </div>
-                    <div className="p-2 bg-gray-800 rounded border border-red-900/50">
-                      <span className="text-gray-500 block text-xs mb-1">Actual Output:</span>
-                      <code className="text-red-400">{executionResult.details.failedTestCase.actual}</code>
-                    </div>
+
+                    {executionResult.details?.compilationError ? (
+                      <div className="p-3 bg-red-950/50 border border-red-900 rounded text-red-400 overflow-x-auto whitespace-pre-wrap">
+                        {executionResult.details.compilationError}
+                      </div>
+                    ) : executionResult.details?.testResults ? (
+                      <div>
+                        {/* Case Pills */}
+                        <div className="flex space-x-2 mb-4">
+                          {executionResult.details.testResults.map((tr, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setActiveResultCase(idx)}
+                              className={`px-3 py-1 rounded-full text-sm font-bold flex items-center space-x-2 ${activeResultCase === idx ? 'bg-gray-700 text-white' : 'bg-transparent text-gray-500 hover:text-gray-300'}`}
+                            >
+                              <div className={`w-2 h-2 rounded-full ${tr.passed ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                              <span>Case {idx + 1}</span>
+                            </button>
+                          ))}
+                        </div>
+                        
+                        {/* Selected Case Detail */}
+                        {executionResult.details.testResults[activeResultCase] && (
+                          <div className="space-y-3">
+                            <div className="p-3 bg-gray-800 rounded border border-gray-700">
+                              <span className="text-gray-500 block text-xs font-bold mb-1 uppercase tracking-wider">Input:</span>
+                              <code className="text-gray-300">{executionResult.details.testResults[activeResultCase].input}</code>
+                            </div>
+                            <div className="p-3 bg-gray-800 rounded border border-gray-700">
+                              <span className="text-gray-500 block text-xs font-bold mb-1 uppercase tracking-wider">Actual Output:</span>
+                              <code className={executionResult.details.testResults[activeResultCase].passed ? "text-green-400" : "text-red-400"}>
+                                {executionResult.details.testResults[activeResultCase].actual || ' '}
+                              </code>
+                            </div>
+                            {executionResult.details.testResults[activeResultCase].expected !== 'Custom Output Not Validated' && (
+                              <div className="p-3 bg-gray-800 rounded border border-gray-700">
+                                <span className="text-gray-500 block text-xs font-bold mb-1 uppercase tracking-wider">Expected Output:</span>
+                                <code className="text-green-400">{executionResult.details.testResults[activeResultCase].expected}</code>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ) : executionResult.details?.failedTestCase && (
+                      <div className="space-y-3">
+                        <div className="p-3 bg-gray-800 rounded border border-gray-700">
+                          <span className="text-gray-500 block text-xs font-bold mb-1 uppercase tracking-wider">Input:</span>
+                          <code className="text-gray-300">{executionResult.details.failedTestCase.input}</code>
+                        </div>
+                        <div className="p-3 bg-gray-800 rounded border border-red-900/50">
+                          <span className="text-gray-500 block text-xs font-bold mb-1 uppercase tracking-wider">Actual Output:</span>
+                          <code className="text-red-400">{executionResult.details.failedTestCase.actual}</code>
+                        </div>
+                        <div className="p-3 bg-gray-800 rounded border border-gray-700">
+                          <span className="text-gray-500 block text-xs font-bold mb-1 uppercase tracking-wider">Expected Output:</span>
+                          <code className="text-green-400">{executionResult.details.failedTestCase.expected}</code>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
