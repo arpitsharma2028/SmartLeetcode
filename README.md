@@ -1,16 +1,17 @@
-# 🚀 MiniLeetcode
+# 🚀 Smart Leetcode
 
 **[Live Demo](https://minileetcode-1.onrender.com/)**
 
-A highly gamified, free competitive programming platform. Master algorithms, challenge friends in real-time Sparring matches, and get unstuck with an AI Mentor!
+Smart Leetcode is a modern, real-time web application built with **React, Node.js, and Supabase**. It allows users to practice coding algorithms, compete against others in real-time, and get hints from an AI tutor.
 
 ---
 
-## 🎯 The Problem We Solve
-Learning Data Structures and Algorithms on traditional platforms can often feel isolating, frustrating, and punishing. When you get stuck, your only option is usually to give up and read the solution, completely ruining the learning process. MiniLeetcode solves this by introducing a supportive **AI Mentor** to nudge you in the right direction, and **Multiplayer Sparring** to make coding social and competitive!
+## 🎯 The Vision
 
-## ⚡ How It's Different from LeetCode
-While traditional platforms focus strictly on grinding out hundreds of problems, MiniLeetcode focuses on **gamification and active learning**:
+Learning Data Structures and Algorithms on traditional platforms can often feel isolating, frustrating, and punishing. When you get stuck, your only option is usually to give up and read the solution, completely ruining the learning process. Smart Leetcode solves this by introducing a supportive **AI Mentor** to nudge you in the right direction, and **Multiplayer Sparring** to make coding social and competitive!
+
+### Why Smart Leetcode?
+While traditional platforms focus strictly on grinding out hundreds of problems, Smart Leetcode focuses on **gamification and active learning**:
 1. **No More Reading Solutions:** Instead of giving up, our AI Mentor analyzes your exact code and gives you a tiny hint to help you solve it yourself.
 2. **Visual Accountability:** We don't just track if you solved a problem; our custom Heatmap tracks *how cleanly* you solved it. Relying too heavily on AI hints will permanently turn your heatmap yellow or red, and break your streaks!
 3. **Multiplayer by Default:** Coding shouldn't be lonely. Challenge a friend to a 1v1 battle, see their live progress, and race to the finish!
