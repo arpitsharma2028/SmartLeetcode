@@ -64,6 +64,8 @@ const Problem = () => {
       setHints(prev => [...prev, response.data.hint]);
     } catch (error) {
       console.error('Failed to get hint:', error);
+      const errMsg = error.response?.data?.error || 'Failed to fetch hint. Please check backend logs or API keys.';
+      setHints(prev => [...prev, `Error: ${errMsg}`]);
     } finally {
       setIsFetchingHint(false);
     }
