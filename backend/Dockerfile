@@ -1,5 +1,5 @@
-# Use Node.js 20 LTS Alpine image for a smaller footprint
-FROM node:20-alpine
+# Use Node.js 22 LTS Alpine image to get native WebSocket support built-in
+FROM node:22-alpine
 
 # Set working directory
 WORKDIR /app
