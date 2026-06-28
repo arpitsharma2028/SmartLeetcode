@@ -34,7 +34,9 @@ const Problem = () => {
     const fetchQuestion = async () => {
       try {
         const response = await api.get(`/api/questions/${id}`);
-        setQuestion(response.data);
+        const q = response.data;
+        setQuestion(q);
+        setSourceCode(q.starter_code?.['javascript'] || DEFAULT_CODE['javascript']);
       } catch (error) {
         console.error('Failed to fetch question:', error);
       } finally {
@@ -47,8 +49,7 @@ const Problem = () => {
   const handleLanguageChange = (e) => {
     const newLang = e.target.value;
     setLanguage(newLang);
-    // Only reset code if they haven't typed much, or prompt them. For simplicity, just reset.
-    setSourceCode(DEFAULT_CODE[newLang]);
+    setSourceCode(question?.starter_code?.[newLang] || DEFAULT_CODE[newLang]);
   };
 
   const handleGetHint = async () => {

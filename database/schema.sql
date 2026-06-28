@@ -34,11 +34,12 @@ CREATE TABLE topics (
 -- Questions
 CREATE TABLE questions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    title VARCHAR(255) NOT NULL,
+    title VARCHAR(255) UNIQUE NOT NULL,
     topic_id INT REFERENCES topics(id) ON DELETE SET NULL,
     difficulty difficulty_level NOT NULL,
     description TEXT NOT NULL,
     test_cases JSONB NOT NULL, -- Format: [{ input: "...", expected_output: "..." }]
+    starter_code JSONB DEFAULT '{}'::jsonb, -- Format: { "cpp": "...", "javascript": "...", "python": "..." }
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
