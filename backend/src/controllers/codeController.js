@@ -377,6 +377,6 @@ CRITICAL RULES:
 
   } catch (error) {
     console.error('Error fetching hint from AI:', error);
-    res.status(500).json({ error: 'Internal server error fetching AI hint' });
+    res.status(500).json({ error: error.message || 'Internal server error fetching AI hint' });
   }
 };
