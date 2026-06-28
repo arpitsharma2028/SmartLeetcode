@@ -68,7 +68,7 @@ CREATE TABLE matches (
 );
 
 -- Indexes for performance
-CREATE INDEX idx_submissions_user_date ON submissions(user_id, DATE(submitted_at));
+CREATE INDEX idx_submissions_user_date ON submissions(user_id, submitted_at);
 CREATE INDEX idx_questions_topic_difficulty ON questions(topic_id, difficulty);
 CREATE INDEX idx_users_username ON users(username);
 
