@@ -51,8 +51,8 @@ While traditional platforms focus strictly on grinding out hundreds of problems,
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/arpitsharma2028/minileetcode.git
-cd minileetcode
+git clone https://github.com/arpitsharma2028/smartLeetcode.git
+cd smartLeetcode
 ```
 
 ### 2. Set up the Backend
@@ -110,7 +110,7 @@ To set up your Supabase database, execute the SQL files found in the `database/`
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! 
-Feel free to check our [issues page](https://github.com/arpitsharma2028/minileetcode/issues) if you want to contribute.
+Feel free to check our [issues page](https://github.com/arpitsharma2028/smartLeetcode/issues) if you want to contribute.
 
 ## 📝 License
 
