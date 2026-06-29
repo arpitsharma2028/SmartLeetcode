@@ -23,6 +23,13 @@ const InterviewArena = () => {
     const newSocket = io(backendUrl);
     setSocket(newSocket);
 
+    // Prevent accidental page refreshes/closes
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     // Join Room
     newSocket.emit('interview-join', {
       roomId,
@@ -51,6 +58,7 @@ const InterviewArena = () => {
 
     return () => {
       newSocket.disconnect();
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [roomId, user?.id]);
 
