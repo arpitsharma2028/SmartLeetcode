@@ -2,6 +2,8 @@
 
 **[Live Demo](https://minileetcode-1.onrender.com/)**
 
+The My Library changes described below are in this local project. The live demo may still show an older version until these changes are deployed.
+
 Smart Leetcode is a modern, real-time web application built with **React, Node.js, and Supabase**. It allows users to practice coding algorithms, compete against others in real-time, conduct structured mock interviews, and receive targeted hints from an AI tutor.
 
 ---
@@ -40,6 +42,12 @@ Smart Leetcode is built with a highly scalable, decoupled architecture to handle
 - **📊 Detailed Profiles & Custom Heatmap:** Track your Global Score and Clean Streak. Your Activity Heatmap uses custom color-coding based on your reliance on hints (Green = Flawless, Yellow = Heavy Hint Usage, Red = Streak Broken). Includes a private Interview History log.
 - **⚖️ Profile Comparison:** Enter an opponent's username to get a side-by-side statistical comparison of your scores, streaks, and solved problem counts. 
 - **🌐 Multi-Language Support:** Write and submit solutions in **JavaScript (Node.js)**, **Python 3**, **C++**, and **Java**.
+- **📚 My Library:** Save Smart Leetcode questions or links from LeetCode, GeeksforGeeks, and other platforms. The Detect button suggests a title and difficulty for a supported link; review them before saving. Smart Leetcode questions open in this app's editor, while external questions open on their source sites.
+- **🗂️ Folders and platform browsing:** The library opens with folder cards, including Graph, DP, Stacks, Array, Binary Search, and Revision. Add custom folders or use Unfiled. Switch between **By folder** and **By platform**, then open a category to see its problems. Source, difficulty, and solve status remain visible on each problem card.
+- **📝 Learning notes:** After an accepted Smart Leetcode submission, **Save what I learned** pre-fills the accepted code. Save your approach, edge cases, language, time and space complexity, and an optional review schedule. In My Library, **Notes** opens a readable, read-only view; **Edit** opens the existing form to change the saved entry.
+- **🔁 Revisit queue:** The profile groups scheduled questions into **Overdue**, **Due today**, and **Upcoming**. **Review now** opens the question, and **Mark reviewed** schedules its next review. A saved problem also has a **Review done** action in the library.
+- **📈 Separate progress counts:** The library shows Total Solved, Easy, Medium, Hard, and Revisit Pending. The profile separates verified Smart Leetcode solves from self-reported external solves. Only accepted Smart Leetcode submissions contribute to competitive score.
+- **⚔️ Home-page sparring:** **Challenge to Sparring** is available on the home page.
 
 ---
 
@@ -65,18 +73,24 @@ Smart Leetcode is built with a highly scalable, decoupled architecture to handle
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/arpitsharma2028/smartLeetcode.git
-cd smartLeetcode
+git clone https://github.com/arpitsharma2028/SmartLeetcode.git
+cd SmartLeetcode
 ```
 
-### 2. Set up the Backend
-Navigate to the backend directory and install dependencies:
-```bash
-cd backend
-npm install
+Use a recent Node.js version with npm. The code runner also needs the language runtimes or compilers for the languages you intend to execute.
+
+### 2. Configure Supabase and the database
+
+Create a `.env` file in `frontend/`:
+
+```env
+VITE_BACKEND_URL=http://localhost:3000
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-Create a `.env` file in the `backend/` directory:
+Create a `.env` file in `backend/` if you run the servers manually or want separate backend settings:
+
 ```env
 PORT=3000
 SUPABASE_URL=your_supabase_project_url
@@ -84,40 +98,52 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 GEMINI_API_KEY=your_google_gemini_api_key
 ```
 
-Start the backend server:
-```bash
-npm start
-```
-*(The backend will start on http://localhost:3000)*
+The frontend and backend must use the **same Supabase project**. `start.bat` can read `SUPABASE_URL` and `SUPABASE_ANON_KEY` from `frontend/.env` when `backend/.env` does not exist. Set `GEMINI_API_KEY` in `backend/.env` if you want to use AI hints.
 
-### 3. Set up the Frontend
-Open a new terminal, navigate to the frontend directory, and install dependencies:
+Run the database SQL described in the Database Setup section below before using My Library.
+
+### 3. Start on Windows
+
+Double-click `start.bat` in the project root, or run:
+
+```bat
+start.bat
+```
+
+It installs missing dependencies with `npm ci`, opens separate backend and frontend terminals, and opens `http://127.0.0.1:5173/`. Close the two server terminals to stop the project. Run `start.bat --check` to run its startup prechecks without launching the servers.
+
+### 4. Start manually (any platform)
+
+In one terminal, from the project root:
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+In another terminal, from the project root:
+
 ```bash
 cd frontend
 npm install
-```
-
-Create a `.env` file in the `frontend/` directory:
-```env
-VITE_BACKEND_URL=http://localhost:3000
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-Start the Vite development server:
-```bash
 npm run dev
 ```
-*(The frontend will start on http://localhost:5173)*
+
+The backend defaults to `http://localhost:3000` and Vite to `http://localhost:5173`.
 
 ---
 
 ## 🗄️ Database Setup (Supabase)
 
-To set up your Supabase database, execute the SQL files found in the `database/` folder in your Supabase SQL Editor:
-1. Run `database/schema.sql` to create the tables (`users`, `questions`, `submissions`, `question_sessions`, `mock_interviews`).
-2. Run `database/triggers.sql` to set up the automated triggers.
-3. Run `database/seed.sql` to populate your database with dummy questions and test data.
+In the Supabase SQL Editor for the project configured above:
+
+1. For a **new database**, set up the original Smart Leetcode tables with `database/schema.sql`, then `database/triggers.sql`. Run `database/seed.sql` if you want the included questions. The original schema creates `users`, `user_stats`, `topics`, `questions`, `submissions`, `matches`, and `question_sessions`.
+2. For both a new database and an **existing Smart Leetcode database**, run [database/library_migration.sql](database/library_migration.sql) after the original `questions` table exists. This adds `library_folders` and `library_items`, their indexes, authenticated-user grants, and row-level security policies. If you already ran this migration against the same Supabase project, the recent library layout and Notes/Edit UI changes need no extra SQL.
+
+Library folders and items are stored in Supabase under the signed-in user's ID and loaded again on sign-in. The library API uses the user's Supabase session token, and the migration policies restrict each user to their own rows. The six starter folders are created for each user when they first load My Library; there is no separate folder seed script. External solve status is self-reported and stays separate from verified submissions.
+
+The migration is written to preserve existing library data when rerun. `CREATE TABLE IF NOT EXISTS` does **not** add missing columns to an older table with the same name, so check an older custom library schema before relying on a rerun to update it.
 
 ---
 
