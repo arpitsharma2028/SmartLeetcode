@@ -36,11 +36,14 @@ const Navbar = () => {
               </span>
             </Link>
           </div>
-          <div className="flex space-x-6 items-center">
+          <div className="flex flex-wrap gap-3 sm:gap-6 items-center text-sm sm:text-base">
             {user ? (
               <>
                 <Link to="/problems" onClick={handleNavClick} className="text-gray-300 hover:text-white transition-colors">
                   Practice
+                </Link>
+                <Link to="/library" onClick={handleNavClick} className="text-gray-300 hover:text-white transition-colors">
+                  My Library
                 </Link>
                 <Link to={`/profile/${user.user_metadata?.username || 'me'}`} onClick={handleNavClick} className="text-gray-300 hover:text-white transition-colors">
                   Profile

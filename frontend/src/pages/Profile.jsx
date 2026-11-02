@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../api';
 import Heatmap from '../components/Heatmap';
 import { useAuth } from '../context/AuthContext';
@@ -8,15 +9,28 @@ import MockInterviewsList from '../components/Profile/MockInterviewsList';
 
 const Profile = () => {
   const { username } = useParams();
-  const navigate = useNavigate();
   const { user } = useAuth();
   
   const [profileData, setProfileData] = useState(null);
   const [heatmapData, setHeatmapData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isChallenging, setIsChallenging] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
+  const [librarySummary, setLibrarySummary] = useState(null);
+  const [libraryError, setLibraryError] = useState('');
+  const isOwner = user?.user_metadata?.username === username;
+
+  const loadLibrarySummary = async () => {
+    try { const { data } = await api.get('/api/library/summary', { params: { tzOffset: new Date().getTimezoneOffset() } }); setLibrarySummary(data); setLibraryError(''); }
+    catch (err) { setLibraryError(err.response?.data?.error || 'Could not load review queue'); }
+  };
+
+  useEffect(() => { if (isOwner) loadLibrarySummary(); }, [isOwner]);
+
+  const completeReview = async item => {
+    try { await api.post(`/api/library/items/${item.id}/review`); await loadLibrarySummary(); }
+    catch (err) { setLibraryError(err.response?.data?.error || 'Could not complete review'); }
+  };
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -58,23 +72,6 @@ const Profile = () => {
 
   const { stats } = profileData;
 
-  const handleSparringChallenge = async () => {
-    try {
-      setIsChallenging(true);
-      const res = await api.post('/api/sparring/create', {
-        userId: user?.id,
-        username: user?.user_metadata?.username
-      });
-      // Pass the generated questionId via query string
-      navigate(`/sparring/${res.data.roomId}?questionId=${res.data.questionId}`);
-    } catch (err) {
-      console.error('Failed to create sparring room', err);
-      alert('Failed to start challenge.');
-    } finally {
-      setIsChallenging(false);
-    }
-  };
-
   return (
     <div className="max-w-7xl mx-auto p-4 sm:px-6 lg:px-8 mt-10 mb-20 font-sans">
       
@@ -95,13 +92,6 @@ const Profile = () => {
               className="px-5 py-2 rounded font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-lg hover:shadow-blue-500/50 transition-all transform hover:-translate-y-0.5"
             >
               Compare Profile
-            </button>
-            <button 
-              onClick={handleSparringChallenge}
-              disabled={isChallenging}
-              className="px-5 py-2 rounded font-bold bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white shadow-lg hover:shadow-red-500/50 transition-all transform hover:-translate-y-0.5"
-            >
-              {isChallenging ? 'Creating Match...' : 'Challenge to Sparring'}
             </button>
           </div>
         </div>
@@ -139,6 +129,11 @@ const Profile = () => {
 
       {/* Dynamic Heatmap */}
       <Heatmap data={heatmapData} />
+
+      {isOwner && <section className="mt-8 space-y-6" aria-label="Personal practice dashboard">
+        <div className="rounded-xl border border-gray-700 bg-gray-800 p-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-2xl font-bold text-white">Practice progress</h2><p className="mt-1 text-sm text-gray-400">Verified Smart Leetcode submissions and self reported external solves are tracked separately.</p></div><Link to="/library" className="rounded-lg bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-500">Open My Library</Link></div><div className="mt-5 grid gap-4 sm:grid-cols-2"><div className="rounded-lg border border-green-800 bg-green-950/30 p-4"><p className="text-sm text-green-300">Smart Leetcode verified solves</p><p className="mt-1 text-3xl font-bold text-white">{librarySummary?.verifiedSolves ?? '—'}</p><p className="text-xs text-gray-400">Only accepted submissions can earn competitive score.</p></div><div className="rounded-lg border border-blue-800 bg-blue-950/30 p-4"><p className="text-sm text-blue-300">External solves logged</p><p className="mt-1 text-3xl font-bold text-white">{librarySummary?.externalLoggedSolves ?? '—'}</p><p className="text-xs text-gray-400">Self reported; no competitive points.</p></div></div>{libraryError && <p role="alert" className="mt-3 text-sm text-red-300">{libraryError}</p>}</div>
+        <div className="rounded-xl border border-gray-700 bg-gray-800 p-6"><h2 className="mb-4 text-2xl font-bold text-white">Revisit queue</h2><div className="grid gap-5 lg:grid-cols-3">{[['Overdue', librarySummary?.overdue || [], 'text-red-300'], ['Due today', librarySummary?.dueToday || [], 'text-yellow-300'], ['Upcoming', librarySummary?.upcoming || [], 'text-blue-300']].map(([heading, list, tone]) => <div key={heading}><h3 className={`mb-3 font-semibold ${tone}`}>{heading} <span className="rounded-full bg-gray-700 px-2 py-0.5 text-xs text-white">{list.length}</span></h3>{list.length === 0 ? <p className="text-sm text-gray-500">Nothing here.</p> : <div className="space-y-2">{list.map(item => <div key={item.id} className="rounded-lg border border-gray-700 bg-gray-900 p-3"><p className="font-medium text-white">{item.title}</p><p className="mb-2 text-xs text-gray-400">{item.source === 'smartleetcode' ? 'Smart Leetcode' : item.source} · {new Date(item.next_review_at).toLocaleDateString()}</p><div className="flex gap-2 text-xs"><Link to={item.source === 'smartleetcode' ? `/problem/${item.question_id}` : item.external_url} target={item.source === 'smartleetcode' ? undefined : '_blank'} rel="noopener noreferrer" className="rounded bg-blue-600 px-2 py-1 font-semibold hover:bg-blue-500">Review now</Link><button onClick={() => completeReview(item)} className="rounded border border-green-700 px-2 py-1 text-green-300 hover:bg-green-950">Mark reviewed</button></div></div>)}</div>}</div>)}</div></div>
+      </section>}
 
       {/* Private Mock Interviews List */}
       {user?.user_metadata?.username === profileData.username && (

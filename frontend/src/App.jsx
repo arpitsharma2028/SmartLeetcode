@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Problem from './pages/Problem';
 import Problems from './pages/Problems';
+import MyLibrary from './pages/MyLibrary';
 import SparringArena from './pages/SparringArena';
 import InterviewArena from './pages/InterviewArena';
 import { useServerHeartbeat } from './hooks/useServerHeartbeat';
@@ -30,6 +31,7 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
+          <Route path="/library" element={<ProtectedRoute><MyLibrary /></ProtectedRoute>} />
           <Route 
             path="/profile/:username" 
             element={

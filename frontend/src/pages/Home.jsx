@@ -1,7 +1,36 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../api';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isChallenging, setIsChallenging] = useState(false);
+  const [challengeError, setChallengeError] = useState('');
   const demoRoomId = Math.random().toString(36).substring(7);
+
+  const handleSparringChallenge = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setIsChallenging(true);
+    setChallengeError('');
+    try {
+      const res = await api.post('/api/sparring/create', {
+        userId: user.id,
+        username: user.user_metadata?.username
+      });
+      navigate(`/sparring/${res.data.roomId}?questionId=${res.data.questionId}`);
+    } catch (error) {
+      console.error('Failed to create sparring room', error);
+      setChallengeError('Failed to start challenge. Please try again.');
+    } finally {
+      setIsChallenging(false);
+    }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
@@ -12,7 +41,7 @@ const Home = () => {
         A highly gamified, free competitive programming platform. Master algorithms, challenge friends, and build your ultimate coding streak.
       </p>
 
-      <div className="flex gap-4">
+      <div className="flex flex-wrap justify-center gap-4">
         <Link 
           to="/problems"
           className="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg shadow-lg transition-transform hover:scale-105"
@@ -25,7 +54,16 @@ const Home = () => {
         >
           Mock Interview
         </Link>
+        <button
+          type="button"
+          onClick={handleSparringChallenge}
+          disabled={isChallenging}
+          className="px-8 py-3 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold rounded-lg shadow-lg transition-transform hover:scale-105"
+        >
+          {isChallenging ? 'Creating Match...' : 'Challenge to Sparring'}
+        </button>
       </div>
+      {challengeError && <p role="alert" className="mt-4 text-red-400">{challengeError}</p>}
     </div>
   );
 };

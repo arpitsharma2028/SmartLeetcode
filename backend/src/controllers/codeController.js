@@ -77,7 +77,8 @@ const HINT_PENALTY = 5;
 
 exports.submitCode = async (req, res) => {
   try {
-    const { userId, questionId, sourceCode, language, isRun, customInput } = req.body;
+    const { questionId, sourceCode, language, isRun, customInput } = req.body;
+    const userId = req.user.id;
 
     if (!userId || !questionId || !sourceCode || !language) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -176,10 +177,12 @@ exports.submitCode = async (req, res) => {
         hints_used: hintsUsed
       });
 
-      if (submissionError) console.error("Error logging submission:", submissionError);
+      if (submissionError) {
+        console.error("Error logging submission:", submissionError);
+        return res.status(500).json({ error: 'Submission could not be saved' });
+      }
 
       // 5. The Gamification & Scoring Math (Only if Accepted)
-      let pointsEarned = 0;
       if (status === 'Accepted') {
         const { data: userStats } = await supabase
           .from('user_stats')
@@ -292,7 +295,8 @@ exports.submitCode = async (req, res) => {
 
 exports.generateHint = async (req, res) => {
   try {
-    const { userId, questionId, sourceCode } = req.body;
+    const { questionId, sourceCode } = req.body;
+    const userId = req.user.id;
 
     if (!userId || !questionId) {
       return res.status(400).json({ error: 'userId and questionId are required' });

@@ -33,6 +33,7 @@ exports.getQuestions = async (req, res) => {
 
     const enrichedData = data.map(q => ({
       ...q,
+      test_cases: (q.test_cases || []).slice(0, 2),
       is_solved: solvedIds.has(q.id)
     }));
 
@@ -56,9 +57,7 @@ exports.getQuestionById = async (req, res) => {
     if (error) throw error;
     if (!data) return res.status(404).json({ error: 'Question not found' });
 
-    // Exclude test cases from client response to prevent cheating, 
-    // unless the client explicitly needs them. For now, returning everything.
-    res.status(200).json(data);
+    res.status(200).json({ ...data, test_cases: (data.test_cases || []).slice(0, 2) });
   } catch (error) {
     console.error('Error fetching question:', error);
     res.status(500).json({ error: 'Internal server error' });

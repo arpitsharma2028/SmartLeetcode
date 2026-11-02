@@ -28,6 +28,14 @@ const Problem = () => {
   const [customInput, setCustomInput] = useState('');
   const [useCustomInput, setUseCustomInput] = useState(false);
   const [activeResultCase, setActiveResultCase] = useState(0);
+  const [learningOpen, setLearningOpen] = useState(false);
+  const [learningSaved, setLearningSaved] = useState(false);
+  const [learningError, setLearningError] = useState('');
+  const [learningBusy, setLearningBusy] = useState(false);
+  const [acceptedCode, setAcceptedCode] = useState('');
+  const [acceptedLanguage, setAcceptedLanguage] = useState('javascript');
+  const [libraryFolders, setLibraryFolders] = useState([]);
+  const [learning, setLearning] = useState({ approach: '', edge_cases: '', time_complexity: '', space_complexity: '', folder_id: '', schedule_review: true });
   const { user } = useAuth();
 
   useEffect(() => {
@@ -87,9 +95,14 @@ const Problem = () => {
         customInput: (isRun && useCustomInput) ? customInput : undefined
       });
       setExecutionResult(response.data);
-      if (isRun) {
-        setActiveTab('results');
-        setActiveResultCase(0);
+      setActiveTab('results');
+      setActiveResultCase(0);
+      if (!isRun && response.data.status === 'Accepted') {
+        setAcceptedCode(sourceCode);
+        setAcceptedLanguage(language);
+        setLearningSaved(false);
+        setLearningOpen(true);
+        api.get('/api/library/folders').then(res => setLibraryFolders(res.data)).catch(() => {});
       }
     } catch (error) {
       console.error('Submission failed:', error);
@@ -100,6 +113,20 @@ const Problem = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const saveLearning = async (event) => {
+    event.preventDefault(); setLearningBusy(true); setLearningError('');
+    try {
+      const { data: saved } = await api.get('/api/library/items');
+      const existing = saved.find(item => item.source === 'smartleetcode' && item.question_id === question.id);
+      const payload = { ...learning, source: 'smartleetcode', question_id: question.id, solution_code: acceptedCode, language: acceptedLanguage };
+      if (existing && learning.schedule_review && existing.next_review_at) delete payload.schedule_review;
+      if (existing) await api.patch(`/api/library/items/${existing.id}`, payload);
+      else await api.post('/api/library/items', payload);
+      setLearningOpen(false); setLearningSaved(true);
+    } catch (e) { setLearningError(e.response?.data?.error || 'Could not save what you learned'); }
+    finally { setLearningBusy(false); }
   };
 
   if (isLoading) {
@@ -310,6 +337,7 @@ const Problem = () => {
                         </span>
                       )}
                     </div>
+                    {executionResult.status === 'Accepted' && <div className="flex items-center gap-3 text-sm"><button onClick={() => setLearningOpen(true)} className="rounded bg-blue-600 px-3 py-2 font-semibold hover:bg-blue-500">{learningSaved ? 'Edit what I learned' : 'Save what I learned'}</button>{learningSaved && <span className="text-green-400">Saved to My Library</span>}</div>}
 
                     {executionResult.details?.compilationError ? (
                       <div className="p-3 bg-red-950/50 border border-red-900 rounded text-red-400 overflow-x-auto whitespace-pre-wrap">
@@ -376,6 +404,7 @@ const Problem = () => {
           </div>
         </div>
       </div>
+      {learningOpen && <div role="dialog" aria-modal="true" aria-label="Save what I learned" className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"><form onSubmit={saveLearning} className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-xl border border-gray-600 bg-gray-800 p-6 shadow-2xl"><div className="mb-4 flex items-center justify-between"><h2 className="text-xl font-bold text-white">Save what I learned</h2><button type="button" onClick={() => setLearningOpen(false)} aria-label="Close" className="text-gray-300 hover:text-white">✕</button></div><p className="mb-4 text-sm text-gray-400">Your accepted code is filled in automatically. Add notes and a review schedule.</p>{learningError && <p role="alert" className="mb-3 text-red-300">{learningError}</p>}<div className="space-y-3">{[['approach', 'Approach / what I learned'], ['edge_cases', 'Edge cases']].map(([key, title]) => <label key={key} className="block text-sm text-gray-300">{title}<textarea className="mt-1 w-full rounded border border-gray-600 bg-gray-900 p-2 text-white" rows="3" value={learning[key]} onChange={e => setLearning(prev => ({ ...prev, [key]: e.target.value }))} /></label>)}<div className="grid grid-cols-2 gap-3">{[['time_complexity', 'Time complexity'], ['space_complexity', 'Space complexity']].map(([key, title]) => <label key={key} className="text-sm text-gray-300">{title}<input className="mt-1 w-full rounded border border-gray-600 bg-gray-900 p-2 text-white" placeholder="O(n)" value={learning[key]} onChange={e => setLearning(prev => ({ ...prev, [key]: e.target.value }))} /></label>)}</div><label className="block text-sm text-gray-300">Folder<select className="mt-1 w-full rounded border border-gray-600 bg-gray-900 p-2 text-white" value={learning.folder_id} onChange={e => setLearning(prev => ({ ...prev, folder_id: e.target.value }))}><option value="">No folder</option>{libraryFolders.map(folder => <option key={folder.id} value={folder.id}>{folder.name}</option>)}</select></label><label className="flex gap-2 text-sm text-gray-300"><input type="checkbox" checked={learning.schedule_review} onChange={e => setLearning(prev => ({ ...prev, schedule_review: e.target.checked }))} /> Schedule a review</label><label className="block text-sm text-gray-300">Accepted code<textarea readOnly className="mt-1 h-32 w-full rounded border border-gray-600 bg-gray-900 p-2 font-mono text-xs text-gray-200" value={acceptedCode} /></label></div><button disabled={learningBusy} className="mt-4 rounded bg-green-600 px-4 py-2 font-semibold hover:bg-green-500 disabled:opacity-50">{learningBusy ? 'Saving...' : 'Save to My Library'}</button></form></div>}
 
     </div>
   );
