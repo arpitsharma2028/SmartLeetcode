@@ -51,7 +51,7 @@ const Heatmap = ({ data }) => {
     <section className="theme-panel p-6" aria-label="Activity heatmap">
       <div className="mb-4 flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-[#edece9]">Activity</h2><span className="theme-eyebrow">Past year</span></div>
       
-      <div className="overflow-x-auto pb-3 pt-1">
+      <div className="overflow-x-auto pb-3 pt-9">
         <div 
           className="grid gap-1"
           style={{
@@ -67,12 +67,11 @@ const Heatmap = ({ data }) => {
             return (
               <div 
                 key={day.date}
-                className={`h-3 w-3 rounded-[2px] cursor-pointer hover:opacity-75 transition-opacity ${bgClass} group relative`}
-                title={tooltipText}
+                className={`group relative h-3 w-3 cursor-pointer rounded-[2px] hover:z-50 hover:ring-1 hover:ring-[#f5ad38] ${bgClass}`}
                 aria-label={tooltipText}
               >
                 {/* Custom Tooltip */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50">
+                <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 hidden -translate-x-1/2 group-hover:block">
                   <div className="bg-gray-900 text-gray-200 text-xs py-1 px-2 rounded whitespace-nowrap border border-gray-600 shadow-xl">
                     {tooltipText}
                   </div>
