@@ -29,17 +29,18 @@ const Problems = () => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gray-900 text-gray-200 p-8 font-sans">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-8">Practice Problems</h1>
+    <div className="min-h-[calc(100vh-4rem)] bg-[#0e0f11] px-5 py-10 text-[#e9e9e8] sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-[1440px]">
+        <p className="theme-eyebrow mb-2">Find your next challenge</p>
+        <h1 className="mb-8 text-4xl font-bold tracking-tight text-[#eeece8]">Practice Problems</h1>
         
         {questions.length === 0 ? (
           <div className="text-gray-400">No problems found in the database.</div>
         ) : (
-          <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700 shadow-xl">
+          <div className="theme-panel overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-750 border-b border-gray-700">
+                <tr className="border-b border-[#2a2e33] bg-[#17191c]">
                   <th className="px-6 py-4 font-semibold text-gray-300">Title</th>
                   <th className="px-6 py-4 font-semibold text-gray-300">Difficulty</th>
                   <th className="px-6 py-4 font-semibold text-gray-300 text-right">Action</th>
@@ -47,7 +48,7 @@ const Problems = () => {
               </thead>
               <tbody>
                 {questions.map((q, idx) => (
-                  <tr key={q.id} className={`border-b border-gray-750 hover:bg-gray-750 transition-colors ${idx % 2 === 0 ? 'bg-gray-800/50' : 'bg-gray-800'}`}>
+                  <tr key={q.id} className={`border-b border-[#2a2e33] transition-colors hover:bg-[#1d2024] ${idx % 2 === 0 ? 'bg-[#15171a]' : 'bg-[#121417]'}`}>
                     <td className="px-6 py-4 text-white font-medium flex items-center space-x-2">
                       {q.is_solved && <span className="text-green-500 font-bold" title="Solved">✓</span>}
                       <span>{q.title}</span>

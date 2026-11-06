@@ -17,7 +17,7 @@ function AppContent() {
   useServerHeartbeat();
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white font-sans flex flex-col">
+    <div className="min-h-screen bg-[#0e0f11] text-[#e9e9e8] font-sans flex flex-col">
       <Navbar />
       <main className="flex-1">
         <Routes>

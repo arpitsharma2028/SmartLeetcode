@@ -48,10 +48,10 @@ const Heatmap = ({ data }) => {
   }, [data]);
 
   return (
-    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg mt-8">
-      <h3 className="text-xl font-bold text-white mb-4">Contribution Heatmap</h3>
+    <section className="theme-panel p-6" aria-label="Activity heatmap">
+      <div className="mb-4 flex items-center justify-between gap-3"><h2 className="text-lg font-bold text-[#edece9]">Activity</h2><span className="theme-eyebrow">Past year</span></div>
       
-      <div className="overflow-x-auto pb-4 pt-8">
+      <div className="overflow-x-auto pb-3 pt-1">
         <div 
           className="grid gap-1"
           style={{
@@ -60,14 +60,16 @@ const Heatmap = ({ data }) => {
             gridAutoColumns: 'min-content'
           }}
         >
-          {days.map((day, idx) => {
-            const bgClass = day.color ? COLOR_MAP[day.color] : 'bg-gray-700';
+          {days.map(day => {
+            const bgClass = day.color ? COLOR_MAP[day.color] : 'bg-[#22252a]';
             const tooltipText = `${day.date}: ${getTooltipText(day.color, day.totalSubmissions)}`;
             
             return (
               <div 
                 key={day.date}
-                className={`w-4 h-4 rounded-sm cursor-pointer hover:opacity-75 transition-opacity ${bgClass} group relative`}
+                className={`h-3 w-3 rounded-[2px] cursor-pointer hover:opacity-75 transition-opacity ${bgClass} group relative`}
+                title={tooltipText}
+                aria-label={tooltipText}
               >
                 {/* Custom Tooltip */}
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50">
@@ -82,16 +84,12 @@ const Heatmap = ({ data }) => {
       </div>
       
       {/* Legend */}
-      <div className="mt-4 flex items-center justify-end space-x-3 text-sm text-gray-400">
-        <span>Less</span>
-        <div className="w-4 h-4 rounded-sm bg-gray-700"></div>
-        <div className="w-4 h-4 rounded-sm bg-red-500" title="Struggled"></div>
-        <div className="w-4 h-4 rounded-sm bg-yellow-400" title="2 Hints"></div>
-        <div className="w-4 h-4 rounded-sm bg-lime-400" title="1 Hint"></div>
-        <div className="w-4 h-4 rounded-sm bg-green-500" title="Flawless"></div>
-        <span>More</span>
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#999da6]">
+        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-green-500" />No hints</span>
+        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-yellow-400" />Hint use</span>
+        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-red-500" />Struggled</span>
       </div>
-    </div>
+    </section>
   );
 };
 

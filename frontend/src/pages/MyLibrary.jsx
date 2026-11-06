@@ -4,15 +4,15 @@ import api from '../api';
 import LibraryNotesDialog from '../components/LibraryNotesDialog';
 
 const empty = { source: 'leetcode', external_url: '', question_id: '', title: '', difficulty: 'Unknown', topic: '', folder_id: '', solved_external: false, approach: '', edge_cases: '', solution_code: '', language: '', time_complexity: '', space_complexity: '', schedule_review: true };
-const input = 'w-full rounded-lg border border-gray-600 bg-gray-900 px-3 py-2 text-white focus:border-blue-400 focus:outline-none';
+const input = 'w-full rounded-lg border border-[#383c42] bg-[#111316] px-3 py-2 text-[#e9e9e8] focus:border-[#f5ad38] focus:outline-none';
 const label = 'block text-sm font-medium text-gray-300 mb-1';
 const sourceName = { smartleetcode: 'Smart Leetcode', leetcode: 'LeetCode', gfg: 'GeeksforGeeks', other: 'Other platform' };
 const defaultFolders = ['Graph', 'DP', 'Stacks', 'Array', 'Binary Search', 'Revision'];
 
 function FolderIcon({ muted = false }) {
   return <svg aria-hidden="true" viewBox="0 0 48 40" className="h-10 w-12 drop-shadow-md">
-    <path d="M3 7a4 4 0 0 1 4-4h11l4 5h18a4 4 0 0 1 4 4v21a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7Z" fill={muted ? '#64748b' : '#2563eb'} />
-    <path d="M3 16a4 4 0 0 1 4-4h33a4 4 0 0 1 4 4v17a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V16Z" fill={muted ? '#94a3b8' : '#34d399'} />
+    <path d="M3 7a4 4 0 0 1 4-4h11l4 5h18a4 4 0 0 1 4 4v21a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7Z" fill={muted ? '#555a61' : '#b9781e'} />
+    <path d="M3 16a4 4 0 0 1 4-4h33a4 4 0 0 1 4 4v17a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V16Z" fill={muted ? '#777c84' : '#f5ad38'} />
   </svg>;
 }
 
@@ -177,21 +177,21 @@ export default function MyLibrary() {
     { label: 'Revisit Pending', value: summary ? summary.overdue.length + summary.dueToday.length : '—', detail: summary ? `${summary.upcoming.length} upcoming` : 'Due or overdue', color: 'text-purple-300' }
   ];
 
-  return <div className="mx-auto max-w-6xl px-4 py-10 text-gray-200 sm:px-6">
+  return <div className="mx-auto max-w-[1440px] px-5 py-10 text-[#e9e9e8] sm:px-8 lg:px-12 lg:py-12">
     <header className="mb-7 flex flex-wrap items-center justify-between gap-4">
-      <div><h1 className="text-4xl font-bold text-white">My Library</h1><p className="mt-2 text-gray-400">Choose a folder or platform to view its problems.</p></div>
-      <div className="flex items-center gap-3"><span className="rounded-full bg-blue-950 px-4 py-2 text-sm text-blue-300">{items.length} saved problems</span><button type="button" onClick={() => showForm ? setShowForm(false) : startAdd()} className="rounded-lg bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-500">{showForm ? 'Close form' : 'Add problem'}</button></div>
+      <div><p className="theme-eyebrow mb-2">Your practice space</p><h1 className="text-4xl font-bold tracking-tight text-[#eeece8]">My Library</h1><p className="mt-2 text-gray-400">Choose a folder or platform to view its problems.</p></div>
+      <div className="flex items-center gap-3"><span className="rounded-lg border border-[#3b301e] bg-[#2b2114] px-4 py-2 text-sm text-[#f5ad38]">{items.length} saved problems</span><button type="button" onClick={() => showForm ? setShowForm(false) : startAdd()} className="theme-button-primary !py-2">{showForm ? 'Close form' : 'Add problem'}</button></div>
     </header>
 
     {error && <p role="alert" className="mb-4 rounded-lg border border-red-800 bg-red-950/50 p-3 text-red-300">{error}</p>}
     {notice && <p role="status" className="mb-4 rounded-lg border border-green-800 bg-green-950/40 p-3 text-green-300">{notice}</p>}
 
     <section aria-label="Library progress" className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-      {statCards.map(stat => <div key={stat.label} className="rounded-xl border border-gray-700 bg-gray-800 p-4 shadow-lg shadow-black/10 sm:p-5"><p className={`text-sm font-semibold ${stat.color}`}>{stat.label}</p><p className="mt-2 text-3xl font-extrabold text-white">{stat.value}</p><p className="mt-1 text-xs text-gray-400">{stat.detail}</p></div>)}
+      {statCards.map(stat => <div key={stat.label} className="theme-panel p-4 sm:p-5"><p className={`theme-eyebrow ${stat.color}`}>{stat.label}</p><p className="mt-3 font-mono text-3xl font-semibold text-[#eeece8]">{stat.value}</p><p className="mt-1 text-xs text-gray-400">{stat.detail}</p></div>)}
     </section>
     {!loading && difficultyCounts.Unknown > 0 && <p className="-mt-5 mb-7 text-xs text-gray-400">{difficultyCounts.Unknown} solved {difficultyCounts.Unknown === 1 ? 'problem has' : 'problems have'} unknown difficulty.</p>}
 
-    {showForm && <form onSubmit={save} className="mb-8 rounded-xl border border-gray-700 bg-gray-800 p-5 shadow-xl">
+    {showForm && <form onSubmit={save} className="theme-panel mb-8 p-5 sm:p-6">
       <div className="mb-5 flex items-center justify-between"><h2 className="text-xl font-bold text-white">{editing ? 'Edit saved problem' : 'Add a problem'}</h2><button type="button" onClick={() => { setEditing(null); setForm(empty); setShowForm(false); }} className="text-sm text-blue-300">Cancel</button></div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div><label className={label} htmlFor="source">Source</label><select id="source" className={input} value={form.source} disabled={Boolean(editing)} onChange={e => setForm({ ...empty, source: e.target.value, folder_id: form.folder_id })}>{Object.entries(sourceName).map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></div>
@@ -213,12 +213,12 @@ export default function MyLibrary() {
       <button disabled={busy} className="mt-5 rounded-lg bg-green-600 px-5 py-2 font-semibold hover:bg-green-500 disabled:opacity-50">{busy ? 'Saving...' : editing ? 'Save changes' : 'Add to My Library'}</button>
     </form>}
 
-    <section aria-label="Browse saved problems" className="rounded-xl border border-gray-700 bg-gray-800/50 p-5 sm:p-6">
+    <section aria-label="Browse saved problems" className="theme-panel p-5 sm:p-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div><h2 className="text-2xl font-bold text-white">Your library</h2><p className="mt-1 text-sm text-gray-400">Browse problems by folder or by platform.</p></div>
-        <div className="flex rounded-lg border border-gray-600 bg-gray-900 p-1" role="group" aria-label="Categorize library">
-          <button type="button" aria-pressed={view === 'folders'} onClick={() => chooseView('folders')} className={`rounded-md px-4 py-2 text-sm font-semibold ${view === 'folders' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white'}`}>By folder</button>
-          <button type="button" aria-pressed={view === 'platforms'} onClick={() => chooseView('platforms')} className={`rounded-md px-4 py-2 text-sm font-semibold ${view === 'platforms' ? 'bg-blue-600 text-white' : 'text-gray-300 hover:text-white'}`}>By platform</button>
+        <div className="flex rounded-lg border border-[#35393f] bg-[#101215] p-1" role="group" aria-label="Categorize library">
+          <button type="button" aria-pressed={view === 'folders'} onClick={() => chooseView('folders')} className={`rounded-md px-4 py-2 text-sm font-semibold ${view === 'folders' ? 'bg-[#f5ad38] text-[#18140d]' : 'text-gray-300 hover:text-white'}`}>By folder</button>
+          <button type="button" aria-pressed={view === 'platforms'} onClick={() => chooseView('platforms')} className={`rounded-md px-4 py-2 text-sm font-semibold ${view === 'platforms' ? 'bg-[#f5ad38] text-[#18140d]' : 'text-gray-300 hover:text-white'}`}>By platform</button>
         </div>
       </div>
 

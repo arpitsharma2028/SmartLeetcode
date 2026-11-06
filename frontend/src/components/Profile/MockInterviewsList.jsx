@@ -33,7 +33,7 @@ const MockInterviewsList = ({ username }) => {
   const renderInterviewCard = (interview, type) => {
     const isPass = interview.status === 'Pass';
     return (
-      <div key={interview.id} className="bg-gray-800 p-6 rounded-lg border border-gray-700 shadow-lg mb-4">
+      <div key={interview.id} className="theme-subpanel mb-3 p-5">
         <div className="flex justify-between items-start mb-4">
           <div>
             <h3 className="text-xl font-bold text-white mb-1">{interview.question_title}</h3>
@@ -82,23 +82,23 @@ const MockInterviewsList = ({ username }) => {
   };
 
   return (
-    <div className="mt-12 bg-gray-900/50 p-8 rounded-xl border border-gray-700 shadow-2xl relative overflow-hidden">
-      <h2 className="text-2xl font-extrabold text-white mb-2 flex items-center space-x-2">
+    <section className="theme-panel p-6">
+      <h2 className="mb-2 flex items-center space-x-2 text-lg font-bold text-[#edece9]">
         <span>Interview History</span>
       </h2>
-      <p className="text-gray-400 text-sm mb-6">This section is strictly private and only visible to you.</p>
+      <p className="mb-5 text-sm text-[#999da6]">Private to you</p>
 
       {/* Tabs */}
       <div className="flex space-x-4 mb-6 border-b border-gray-700 pb-2">
         <button
           onClick={() => setActiveTab('candidate')}
-          className={`px-4 py-2 font-bold text-sm transition-colors ${activeTab === 'candidate' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-gray-500 hover:text-gray-300'}`}
+          className={`px-4 py-2 font-semibold text-sm transition-colors ${activeTab === 'candidate' ? 'text-[#f5ad38] border-b-2 border-[#f5ad38]' : 'text-gray-500 hover:text-gray-300'}`}
         >
           As Candidate ({candidateInterviews.length})
         </button>
         <button
           onClick={() => setActiveTab('interviewer')}
-          className={`px-4 py-2 font-bold text-sm transition-colors ${activeTab === 'interviewer' ? 'text-purple-400 border-b-2 border-purple-400' : 'text-gray-500 hover:text-gray-300'}`}
+          className={`px-4 py-2 font-semibold text-sm transition-colors ${activeTab === 'interviewer' ? 'text-[#f5ad38] border-b-2 border-[#f5ad38]' : 'text-gray-500 hover:text-gray-300'}`}
         >
           As Interviewer ({interviewerInterviews.length})
         </button>
@@ -122,7 +122,7 @@ const MockInterviewsList = ({ username }) => {
           )
         )}
       </div>
-    </div>
+    </section>
   );
 };
 

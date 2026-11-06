@@ -2,8 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: dark;
+  --canvas: #0e0f11;
+  --surface: #15171a;
+  --surface-raised: #1b1e22;
+  --line: #2a2e33;
+  --muted: #999da6;
+  --accent: #f5ad38;
+  --accent-hover: #ffc061;
+}
+
 @layer base {
   body {
-    @apply bg-gray-900 text-gray-100 font-sans antialiased;
+    @apply font-sans antialiased;
+    background: var(--canvas);
+    color: #e9e9e8;
   }
+
+  ::selection { background: #f5ad3855; color: white; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+}
+
+/* Bring older practice and interview screens into the same dark palette. */
+.bg-gray-900 { background-color: var(--canvas); }
+.bg-gray-800 { background-color: var(--surface); }
+.bg-gray-700 { background-color: var(--surface-raised); }
+.bg-gray-900\/70, .bg-gray-900\/50, .bg-gray-900\/30 { background-color: #111316; }
+.bg-gray-800\/50 { background-color: #15171a; }
+.bg-blue-950 { background-color: #332511; }
+.border-gray-700 { border-color: var(--line); }
+.border-gray-600 { border-color: #383c42; }
+.text-gray-400 { color: var(--muted); }
+.text-gray-500 { color: #81858e; }
+.bg-blue-600, .bg-green-600 { background-color: var(--accent); color: #18140d; }
+.hover\:bg-blue-500:hover, .hover\:bg-green-500:hover { background-color: var(--accent-hover); color: #18140d; }
+.text-blue-300, .text-blue-400 { color: var(--accent); }
+.hover\:text-blue-200:hover, .hover\:text-blue-300:hover { color: var(--accent-hover); }
+.hover\:border-blue-400:hover { border-color: var(--accent); }
+.hover\:bg-gray-700:hover { background-color: #202328; }
+.focus\:border-blue-400:focus, .focus\:border-blue-500:focus { border-color: var(--accent); }
+
+.theme-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 13px; }
+.theme-subpanel { background: #111316; border: 1px solid var(--line); border-radius: 10px; }
+.theme-eyebrow { color: var(--muted); font: 700 11px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .16em; text-transform: uppercase; }
+.theme-button-primary { display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--accent); color: #18140d; font-weight: 700; padding: .76rem 1.3rem; transition: background .15s, transform .15s; }
+.theme-button-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.theme-button-secondary { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #383c42; border-radius: 8px; background: transparent; color: #e9e9e8; font-weight: 650; padding: .76rem 1.3rem; transition: border-color .15s, background .15s; }
+.theme-button-secondary:hover { border-color: var(--accent); background: #f5ad380d; }
+.theme-button-primary:disabled, .theme-button-secondary:disabled { cursor: wait; opacity: .55; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-button-primary, .theme-button-secondary { transition: none; }
 }
